@@ -38,7 +38,7 @@ fun ProductDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalle del Producto", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                title = { Text("Descubre la pieza", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -118,9 +118,9 @@ fun ProductDetailScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp)
+                    .height(320.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -168,12 +168,34 @@ fun ProductDetailScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Precio
-            Text(
-                text = "$${String.format("%.2f", product.price)}",
-                fontWeight = FontWeight.Black,
-                fontSize = 26.sp,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("Precio", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(
+                            text = "$${String.format("%.2f", product.price)}",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 26.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LocalShipping, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                        Text(" Compra segura", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
