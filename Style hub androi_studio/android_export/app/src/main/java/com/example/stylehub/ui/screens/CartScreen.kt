@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -43,6 +44,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.stylehub.data.model.CartItemUi
 import com.example.stylehub.ui.viewmodel.CartUiState
+import com.example.stylehub.ui.viewmodel.MAX_CART_ITEM_QUANTITY
 import com.example.stylehub.ui.viewmodel.ProductViewModel
 import java.util.Locale
 
@@ -66,6 +71,24 @@ fun CartScreen(
     modifier: Modifier = Modifier
 ) {
     val cartState by viewModel.cartState.collectAsState()
+    var showClearConfirmation by remember { mutableStateOf(false) }
+
+    if (showClearConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirmation = false },
+            title = { Text("¿Vaciar el carrito?") },
+            text = { Text("Se eliminarán los ${cartState.totalItems} artículos seleccionados.") },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.clearCart()
+                    showClearConfirmation = false
+                }) { Text("Vaciar") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showClearConfirmation = false }) { Text("Cancelar") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -87,7 +110,7 @@ fun CartScreen(
                 },
                 actions = {
                     if (cartState.items.isNotEmpty()) {
-                        IconButton(onClick = viewModel::clearCart) {
+                        IconButton(onClick = { showClearConfirmation = true }) {
                             Icon(Icons.Default.DeleteOutline, contentDescription = "Vaciar carrito")
                         }
                     }
@@ -123,6 +146,7 @@ fun CartScreen(
                     CartItemCard(
                         item = item,
                         onIncrease = { viewModel.updateCartQuantity(item.product.id, item.quantity + 1) },
+                        canIncrease = item.quantity < MAX_CART_ITEM_QUANTITY,
                         onDecrease = { viewModel.updateCartQuantity(item.product.id, item.quantity - 1) },
                         onRemove = { viewModel.removeFromCart(item.product.id) }
                     )
@@ -136,6 +160,7 @@ fun CartScreen(
 private fun CartItemCard(
     item: CartItemUi,
     onIncrease: () -> Unit,
+    canIncrease: Boolean,
     onDecrease: () -> Unit,
     onRemove: () -> Unit
 ) {
@@ -186,7 +211,11 @@ private fun CartItemCard(
                                 Icon(Icons.Default.Remove, contentDescription = "Reducir cantidad", modifier = Modifier.size(17.dp))
                             }
                             Text(item.quantity.toString(), fontWeight = FontWeight.Bold)
-                            IconButton(onClick = onIncrease, modifier = Modifier.size(34.dp)) {
+                            IconButton(
+                                onClick = onIncrease,
+                                enabled = canIncrease,
+                                modifier = Modifier.size(34.dp)
+                            ) {
                                 Icon(Icons.Default.Add, contentDescription = "Aumentar cantidad", modifier = Modifier.size(17.dp))
                             }
                         }

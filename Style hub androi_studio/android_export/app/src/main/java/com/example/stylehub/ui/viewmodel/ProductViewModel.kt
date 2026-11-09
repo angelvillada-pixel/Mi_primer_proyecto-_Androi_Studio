@@ -27,6 +27,8 @@ data class CartUiState(
     val isDrawerOpen: Boolean = false
 )
 
+const val MAX_CART_ITEM_QUANTITY = 10
+
 data class AuthUiState(
     val currentUser: User? = null,
     val availableUsers: List<User> = emptyList(),
@@ -144,36 +146,54 @@ class ProductViewModel(
     // --- Métodos de Carrito Reactivo ---
 
     fun addToCart(product: Product, quantity: Int = 1, silent: Boolean = false) {
+        if (quantity <= 0) return
+        val existingQuantity = _cartState.value.items
+            .firstOrNull { it.product.id == product.id }
+            ?.quantity ?: 0
+        if (existingQuantity >= MAX_CART_ITEM_QUANTITY) {
+            if (!silent) setToast("Máximo $MAX_CART_ITEM_QUANTITY unidades por producto")
+            return
+        }
+        val acceptedQuantity = minOf(quantity, MAX_CART_ITEM_QUANTITY - existingQuantity)
         _cartState.update { current ->
             val existing = current.items.find { it.product.id == product.id }
             val newItems = if (existing != null) {
                 current.items.map {
-                    if (it.product.id == product.id) it.copy(quantity = it.quantity + quantity)
+                    if (it.product.id == product.id) it.copy(quantity = it.quantity + acceptedQuantity)
                     else it
                 }
             } else {
-                current.items + CartItemUi(product, quantity)
+                current.items + CartItemUi(product, acceptedQuantity)
             }
 
             calculateCartState(newItems, current.isDrawerOpen)
         }
 
         if (!silent) {
-            setToast("Añadido al carrito: ${product.title}")
+            val message = if (acceptedQuantity < quantity) {
+                "Máximo $MAX_CART_ITEM_QUANTITY unidades por producto"
+            } else {
+                "Añadido al carrito: ${product.title}"
+            }
+            setToast(message)
         }
     }
 
     fun updateCartQuantity(productId: Int, quantity: Int) {
+        val safeQuantity = quantity.coerceAtMost(MAX_CART_ITEM_QUANTITY)
         _cartState.update { current ->
-            val newItems = if (quantity <= 0) {
+            val newItems = if (safeQuantity <= 0) {
                 current.items.filter { it.product.id != productId }
             } else {
                 current.items.map {
-                    if (it.product.id == productId) it.copy(quantity = quantity)
+                    if (it.product.id == productId) it.copy(quantity = safeQuantity)
                     else it
                 }
             }
             calculateCartState(newItems, current.isDrawerOpen)
+        }
+        if (quantity > MAX_CART_ITEM_QUANTITY) {
+            setToast("Máximo $MAX_CART_ITEM_QUANTITY unidades por producto")
         }
     }
 
