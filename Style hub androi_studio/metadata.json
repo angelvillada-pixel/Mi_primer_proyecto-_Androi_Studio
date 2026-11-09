@@ -1,0 +1,8 @@
+{
+  "name": "StyleHub – Catálogo de Moda y Accesorios",
+  "description": "Aplicación de comercio electrónico y catálogo de moda que consume la Fake Store API con vistas de productos, categorías, carrito y perfiles de usuario.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
